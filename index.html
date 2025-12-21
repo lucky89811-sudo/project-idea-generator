@@ -693,12 +693,32 @@ Format your response as JSON with these keys: title, description, features (arra
 
             } catch (error) {
                 console.error('Error:', error);
-                result.innerHTML = `
-                    <h2>⚠️ Oops!</h2>
-                    <p>Something went wrong generating your idea. Please try again!</p>
-                    <p style="color: var(--text-secondary); font-size: 0.9em;">Error: ${error.message}</p>
-                `;
+                
+                // Check if it's an API error
+                if (error.message.includes('fetch') || error.message.includes('API')) {
+                    result.innerHTML = `
+                        <h2>⚠️ API Configuration Needed</h2>
+                        <p>The AI generation feature requires API configuration when hosted externally.</p>
+                        <p style="color: var(--text-secondary); margin-top: 15px;">This feature works in Claude.ai artifacts but needs additional setup for external hosting. You have two options:</p>
+                        <ul style="margin-top: 10px; color: var(--text-secondary);">
+                            <li><strong>Option 1:</strong> Use the pre-built project ideas (fallback mode below)</li>
+                            <li><strong>Option 2:</strong> Set up your own Anthropic API key (requires paid account)</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><em>Falling back to curated project ideas...</em></p>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <h2>⚠️ Oops!</h2>
+                        <p>Something went wrong generating your idea. Please try again!</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">Error: ${error.message}</p>
+                    `;
+                }
                 result.style.display = 'block';
+                
+                // Fall back to pre-built ideas after 2 seconds
+                setTimeout(() => {
+                    generateFallbackIdea(field, level);
+                }, 2000);
             } finally {
                 loading.style.display = 'none';
                 buttons.forEach(btn => btn.disabled = false);
@@ -742,6 +762,95 @@ Format your response as JSON with these keys: title, description, features (arra
             
             result.style.display = 'block';
             result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Fallback project ideas for when API is not available
+        const fallbackProjects = {
+            "Web Development": {
+                "Beginner": {
+                    title: "Personal Portfolio Website with CMS",
+                    description: "Create a stunning personal portfolio website with an integrated content management system. Build a modern, responsive site that showcases your projects, skills, and blog posts. Learn the fundamentals of web development while creating something you can actually use.",
+                    features: ["Responsive grid layout for project showcase", "Dark/Light theme toggle", "Blog section with markdown support", "Contact form with email integration", "Smooth scroll animations and transitions"],
+                    technologies: ["HTML5", "CSS3", "JavaScript", "Local Storage", "GitHub Pages"],
+                    learningOutcomes: "Master HTML structure, CSS styling including Flexbox and Grid, vanilla JavaScript DOM manipulation, responsive design principles, and basic deployment practices.",
+                    difficulty: "Easy"
+                },
+                "Intermediate": {
+                    title: "Social Recipe Sharing Platform",
+                    description: "Build a full-featured recipe sharing platform where users can post, search, and rate recipes. Implement user authentication, image uploads, and a smart search system. This project covers both frontend and backend development with modern practices.",
+                    features: ["User authentication and profiles", "Recipe CRUD operations with image uploads", "Advanced search and filtering", "Rating and comment system", "Responsive card-based UI design"],
+                    technologies: ["React", "Node.js", "Express", "MongoDB", "JWT", "Cloudinary", "Bootstrap"],
+                    learningOutcomes: "Learn full-stack development, RESTful API design, authentication strategies, database modeling, file uploads, and state management in React.",
+                    difficulty: "Medium"
+                },
+                "Advanced": {
+                    title: "Real-Time Collaborative Code Editor",
+                    description: "Develop a sophisticated web-based code editor that supports real-time collaboration, syntax highlighting, and code execution. Users can create rooms, invite others, and code together with live cursors and chat. Perfect for remote pair programming.",
+                    features: ["Real-time collaborative editing with WebSockets", "Syntax highlighting for multiple languages", "In-browser code execution sandbox", "Room management and user presence", "Integrated chat and video call"],
+                    technologies: ["React", "WebSocket", "Monaco Editor", "Docker", "Redis", "WebRTC", "Node.js", "PostgreSQL"],
+                    learningOutcomes: "Master WebSocket programming, operational transformation algorithms, containerization, real-time state synchronization, WebRTC implementation, and scaling concurrent connections.",
+                    difficulty: "Hard"
+                }
+            },
+            "Mobile App Development": {
+                "Beginner": {
+                    title: "Habit Tracker with Streak Counter",
+                    description: "Design a mobile app that helps users build and maintain daily habits. Features include streak tracking, reminder notifications, and motivational statistics with beautiful charts. Learn mobile UI/UX principles while creating a useful productivity tool.",
+                    features: ["Daily habit check-in interface", "Streak counter with calendar view", "Push notifications for reminders", "Progress charts and statistics", "Customizable habit categories"],
+                    technologies: ["React Native", "Expo", "AsyncStorage", "React Navigation", "Victory Charts"],
+                    learningOutcomes: "Understand React Native basics, local data persistence, push notifications, navigation patterns, and mobile-specific UI components.",
+                    difficulty: "Easy"
+                },
+                "Intermediate": {
+                    title: "Augmented Reality Shopping Assistant",
+                    description: "Create an AR-powered mobile app that lets users visualize furniture and products in their space before buying. Integrate with e-commerce APIs, implement AR placement, and add social sharing features. Explore the cutting edge of mobile technology.",
+                    features: ["AR object placement and scaling", "Product catalog from e-commerce API", "Photo capture and social sharing", "Saved room designs", "Purchase integration"],
+                    technologies: ["React Native", "ARKit/ARCore", "Shopify API", "Firebase", "Expo Camera", "Redux"],
+                    learningOutcomes: "Master AR implementation in mobile apps, 3D object rendering, API integration, camera functionality, and complex state management.",
+                    difficulty: "Medium"
+                },
+                "Advanced": {
+                    title: "AI-Powered Personal Finance Manager",
+                    description: "Build an intelligent finance app that automatically categorizes transactions, predicts spending patterns, and provides personalized budgeting advice. Integrate with banking APIs, implement ML models, and ensure top-notch security for financial data.",
+                    features: ["Bank account integration via Plaid", "ML-based transaction categorization", "Spending predictions and insights", "Custom budget creation and alerts", "Encrypted data storage"],
+                    technologies: ["React Native", "TensorFlow Lite", "Plaid API", "Node.js Backend", "PostgreSQL", "Biometric Auth", "AWS"],
+                    learningOutcomes: "Learn mobile ML integration, secure financial data handling, complex data visualization, biometric authentication, and building production-ready financial applications.",
+                    difficulty: "Hard"
+                }
+            },
+            "AI/Machine Learning": {
+                "Beginner": {
+                    title: "Sentiment Analysis Twitter Bot",
+                    description: "Build a bot that analyzes the sentiment of tweets about specific topics or brands. Visualize the results with charts showing positive, negative, and neutral sentiments over time. Learn NLP basics and data visualization.",
+                    features: ["Real-time tweet collection", "Sentiment classification", "Trend analysis over time", "Interactive dashboard", "Keyword filtering"],
+                    technologies: ["Python", "Twitter API", "TextBlob/VADER", "Pandas", "Matplotlib", "Streamlit"],
+                    learningOutcomes: "Understand sentiment analysis fundamentals, API integration, data preprocessing, basic NLP techniques, and creating data visualizations.",
+                    difficulty: "Easy"
+                },
+                "Intermediate": {
+                    title: "Smart Content Recommendation Engine",
+                    description: "Develop a Netflix-style recommendation system using collaborative filtering and content-based algorithms. Train models on user behavior data, implement A/B testing, and build an API for real-time recommendations. Deploy as a microservice.",
+                    features: ["Collaborative filtering algorithm", "Content-based recommendations", "Hybrid recommendation approach", "Real-time API endpoints", "Performance metrics dashboard"],
+                    technologies: ["Python", "Scikit-learn", "FastAPI", "PostgreSQL", "Docker", "Redis", "Pandas", "NumPy"],
+                    learningOutcomes: "Master recommendation algorithms, model evaluation metrics, API development for ML models, caching strategies, and productionizing ML systems.",
+                    difficulty: "Medium"
+                },
+                "Advanced": {
+                    title: "Multi-Modal AI Assistant for Accessibility",
+                    description: "Create an AI assistant that helps visually impaired users by combining computer vision, speech recognition, and NLP. The system describes scenes, reads text, and answers questions about the environment using image captioning and visual Q&A models.",
+                    features: ["Real-time scene description", "OCR for text reading", "Visual question answering", "Voice command interface", "Object and face recognition"],
+                    technologies: ["PyTorch", "Transformers", "OpenCV", "Speech Recognition", "YOLO", "BERT", "Flask", "TensorRT"],
+                    learningOutcomes: "Learn to build multi-modal AI systems, implement state-of-the-art computer vision models, optimize models for mobile deployment, and design accessible AI applications.",
+                    difficulty: "Hard"
+                }
+            }
+        };
+
+        function generateFallbackIdea(field, level) {
+            const ideas = fallbackProjects[field];
+            if (ideas && ideas[level]) {
+                displayResult(ideas[level]);
+            }
         }
     </script>
 </body>
